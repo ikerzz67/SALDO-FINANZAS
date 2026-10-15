@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f7fb">
+  <meta name="description" content="Control privado de ingresos, gastos, presupuestos y objetivos de ahorro.">
+  <title>Saldo — Finanzas personales</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Saldo inicio">
+        <span class="brand-mark">S</span><span>SALDO<span class="brand-dot">.</span></span>
+      </a>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar">T</div>
+        <div class="user-meta"><strong id="sidebarName">Tu espacio</strong><small id="connectionStatus">Modo local</small></div>
+      </div>
+      <nav class="nav-list" aria-label="Navegación principal">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span>Resumen</button>
+        <button class="nav-item" data-view="transactions"><span class="nav-icon">↕</span>Movimientos</button>
+        <button class="nav-item" data-view="budgets"><span class="nav-icon">◴</span>Presupuestos</button>
+        <button class="nav-item" data-view="statistics"><span class="nav-icon">▥</span>Estadísticas</button>
+        <button class="nav-item" data-view="goals"><span class="nav-icon">◎</span>Objetivos de ahorro</button>
+        <button class="nav-item" data-view="recurring"><span class="nav-icon">⟳</span>Gastos recurrentes</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" id="themeToggle"><span class="nav-icon">◐</span><span id="themeLabel">Modo oscuro</span></button>
+        <button class="nav-item" id="exportBtn"><span class="nav-icon">⇩</span>Exportar CSV</button>
+        <button class="nav-item" id="settingsBtn"><span class="nav-icon">⚙</span>Cuenta y ajustes</button>
+      </div>
+      <div class="sidebar-foot">Tus finanzas, a tu manera.</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-brand" data-view="dashboard"><span class="brand-mark">S</span> SALDO<span class="brand-dot">.</span></button>
+        <div class="topbar-title"><span class="eyebrow" id="todayLabel">TU PANEL FINANCIERO</span><h1 id="pageTitle">Resumen</h1></div>
+        <div class="top-actions">
+          <button class="icon-button" id="mobileThemeToggle" aria-label="Cambiar tema">◐</button>
+          <button class="primary-button" id="addTransactionTop"><span>＋</span> Añadir movimiento</button>
+        </div>
+      </header>
+
+      <section id="authNotice" class="notice hidden"></section>
+
+      <section id="view-dashboard" class="view active">
+        <div class="welcome-row">
+          <div><h2>Hola, <span id="welcomeName">¿qué tal?</span> 👋</h2><p class="muted">Aquí tienes el resumen de tus finanzas.</p></div>
+          <div class="month-picker"><label for="dashboardMonth">Periodo</label><input id="dashboardMonth" type="month"></div>
+        </div>
+        <div class="stats-grid">
+          <article class="stat-card balance-card"><div class="stat-head"><span>Balance del periodo</span><span class="stat-icon">↗</span></div><div class="stat-value" id="balanceValue">0,00 €</div><div class="stat-foot" id="balanceFoot">Ingresos menos gastos</div></article>
+          <article class="stat-card"><div class="stat-head"><span>Ingresos</span><span class="stat-icon green">＋</span></div><div class="stat-value" id="incomeValue">0,00 €</div><div class="stat-foot">Total recibido este mes</div></article>
+          <article class="stat-card"><div class="stat-head"><span>Gastos</span><span class="stat-icon red">－</span></div><div class="stat-value" id="expenseValue">0,00 €</div><div class="stat-foot">Total gastado este mes</div></article>
+          <article class="stat-card"><div class="stat-head"><span>Capacidad de ahorro</span><span class="stat-icon purple">◎</span></div><div class="stat-value" id="savingRate">0%</div><div class="stat-foot">De tus ingresos del periodo</div></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel chart-panel"><div class="panel-heading"><div><h3>Ingresos vs. gastos</h3><p class="muted">Evolución de los últimos 6 meses</p></div><span class="panel-tag">6 MESES</span></div><div id="trendChart" class="trend-chart"></div><div class="chart-legend"><span><i class="legend-dot income-dot"></i>Ingresos</span><span><i class="legend-dot expense-dot"></i>Gastos</span></div></article>
+          <article class="panel"><div class="panel-heading"><div><h3>Gastos por categoría</h3><p class="muted">En el periodo seleccionado</p></div></div><div id="categoryChart" class="category-chart"></div></article>
+        </div>
+        <article class="panel recent-panel"><div class="panel-heading"><div><h3>Últimos movimientos</h3><p class="muted">Tu actividad más reciente</p></div><button class="text-button" data-view="transactions">Ver todos →</button></div><div id="recentTransactions" class="transaction-list"></div></article>
+      </section>
+
+      <section id="view-transactions" class="view">
+        <div class="section-intro"><div><h2>Movimientos</h2><p class="muted">Controla cada euro que entra y sale.</p></div><button class="primary-button" id="addTransactionPage">＋ Nuevo movimiento</button></div>
+        <div class="filter-row panel compact-panel"><input id="transactionSearch" type="search" placeholder="Buscar por concepto…"><select id="transactionTypeFilter"><option value="all">Todos los movimientos</option><option value="income">Solo ingresos</option><option value="expense">Solo gastos</option></select><input id="transactionMonthFilter" type="month" aria-label="Filtrar por mes"></div>
+        <article class="panel"><div id="allTransactions" class="transaction-list"></div></article>
+      </section>
+
+      <section id="view-budgets" class="view">
+        <div class="section-intro"><div><h2>Presupuestos</h2><p class="muted">Pon límites a tus gastos y evita sorpresas.</p></div><button class="primary-button" id="addBudgetBtn">＋ Crear presupuesto</button></div>
+        <div class="budget-summary-grid"><div class="mini-stat"><span class="muted">Presupuesto total</span><strong id="budgetTotal">0 €</strong></div><div class="mini-stat"><span class="muted">Gastado este mes</span><strong id="budgetSpent">0 €</strong></div><div class="mini-stat"><span class="muted">Disponible</span><strong id="budgetRemaining">0 €</strong></div></div>
+        <div id="budgetsList" class="budget-grid"></div>
+      </section>
+
+      <section id="view-statistics" class="view">
+        <div class="section-intro"><div><h2>Estadísticas</h2><p class="muted">Entiende tus hábitos y toma mejores decisiones.</p></div><div class="month-picker"><label for="statsMonth">Periodo</label><input id="statsMonth" type="month"></div></div>
+        <div class="stats-grid three"><article class="stat-card"><div class="stat-head"><span>Ingresos</span><span class="stat-icon green">＋</span></div><div class="stat-value" id="statsIncome">0 €</div></article><article class="stat-card"><div class="stat-head"><span>Gastos</span><span class="stat-icon red">－</span></div><div class="stat-value" id="statsExpense">0 €</div></article><article class="stat-card"><div class="stat-head"><span>Balance</span><span class="stat-icon purple">↗</span></div><div class="stat-value" id="statsBalance">0 €</div></article></div>
+        <div class="content-grid"><article class="panel"><div class="panel-heading"><div><h3>Desglose de gastos</h3><p class="muted">Dónde se concentra tu gasto</p></div></div><div id="statsCategories"></div></article><article class="panel"><div class="panel-heading"><div><h3>Resumen inteligente</h3><p class="muted">Datos del periodo seleccionado</p></div></div><div id="insightsList" class="insights-list"></div></article></div>
+      </section>
+
+      <section id="view-goals" class="view">
+        <div class="section-intro"><div><h2>Objetivos de ahorro</h2><p class="muted">Cada pequeño paso te acerca a tu objetivo.</p></div><button class="primary-button" id="addGoalBtn">＋ Nuevo objetivo</button></div>
+        <div id="goalsList" class="goal-grid"></div>
+      </section>
+
+      <section id="view-recurring" class="view">
+        <div class="section-intro"><div><h2>Gastos recurrentes</h2><p class="muted">Ten controlados los pagos que se repiten.</p></div><button class="primary-button" id="addRecurringBtn">＋ Añadir gasto fijo</button></div>
+        <div class="notice soft-notice"><strong>Importante:</strong> estos gastos son recordatorios de planificación; no se cargan automáticamente en tu historial bancario. Pulsa “Registrar pago” cuando lo hayas pagado.</div>
+        <div id="recurringList" class="recurring-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Navegación móvil">
+    <button class="active" data-view="dashboard"><span>⌂</span>Inicio</button><button data-view="transactions"><span>↕</span>Movimientos</button><button data-view="budgets"><span>◴</span>Presupuestos</button><button data-view="statistics"><span>▥</span>Estadísticas</button><button data-view="goals"><span>◎</span>Objetivos</button>
+  </nav>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header"><div><span class="eyebrow">SALDO · GESTIÓN</span><h2 id="modalTitle">Añadir movimiento</h2></div><button class="icon-button" id="closeModal" aria-label="Cerrar">×</button></div>
+      <form id="modalForm"><div id="modalFields" class="modal-fields"></div><div class="modal-actions"><button type="button" class="secondary-button" id="cancelModal">Cancelar</button><button type="submit" class="primary-button" id="saveModal">Guardar</button></div></form>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="authScreen" class="auth-screen hidden">
+    <div class="auth-card"><a class="brand auth-brand" href="#"><span class="brand-mark">S</span><span>SALDO<span class="brand-dot">.</span></span></a><span class="eyebrow">FINANZAS PERSONALES</span><h1 id="authHeading">Tu dinero, más claro.</h1><p class="muted">Accede a tu espacio privado para controlar tus ingresos, gastos y objetivos.</p>
+      <div class="auth-tabs"><button class="active" data-auth-mode="login">Iniciar sesión</button><button data-auth-mode="signup">Crear cuenta</button></div>
+      <form id="authForm" class="auth-form"><label>Nombre visible <input id="authName" autocomplete="name" placeholder="Cómo te llamas"></label><label>Correo electrónico <input id="authEmail" type="email" autocomplete="email" required placeholder="tu@correo.com"></label><label>Contraseña <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"></label><button class="primary-button full-button" type="submit" id="authSubmit">Entrar a mi espacio</button></form>
+      <p class="auth-note" id="authNote">Tus datos se guardan en tu cuenta privada cuando la nube está configurada.</p><button class="text-button local-mode-btn" id="continueLocal">Probar sin cuenta en este dispositivo →</button>
+    </div>
+  </section>
+
+  <section id="settingsScreen" class="settings-screen hidden">
+    <div class="settings-card"><div class="modal-header"><div><span class="eyebrow">CONFIGURACIÓN</span><h2>Cuenta y ajustes</h2></div><button class="icon-button" id="closeSettings">×</button></div>
+      <div class="settings-block"><h3>Tu perfil</h3><p id="accountEmail" class="muted">Modo local en este dispositivo</p><label>Nombre visible <input id="profileName" maxlength="40" placeholder="Tu nombre"></label><button class="secondary-button" id="saveProfile">Guardar nombre</button></div>
+      <div class="settings-block"><h3>Datos</h3><p class="muted">Haz copias de seguridad periódicas. En modo local, los datos solo están en este navegador.</p><div class="settings-buttons"><button class="secondary-button" id="backupBtn">Exportar copia JSON</button><label class="secondary-button import-label">Importar copia JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>
+      <div class="settings-block"><h3>Sesión</h3><button class="danger-button" id="signOutBtn">Cerrar sesión / volver al inicio</button></div>
+      <div class="settings-block"><h3>Estado de sincronización</h3><p id="syncDetails" class="muted">Los datos locales no se sincronizan entre dispositivos.</p></div>
+    </div>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

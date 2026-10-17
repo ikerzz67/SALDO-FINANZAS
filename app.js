@@ -179,10 +179,10 @@ function importBBVACsv(file){
  if(mode==="cloud"){toast("La importación bancaria está disponible en modo local por ahora.");return;}
  const reader=new FileReader();reader.onload=()=>{
   try{
-   const raw=String(reader.result||"").replace(/^\\uFEFF/,"").trim();if(!raw)throw new Error("Archivo vacío");
-   const first=raw.split(/\\r?\\n/)[0],delimiter=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?";":",";
-   const lines=raw.split(/\\r?\\n/).filter(line=>line.trim());if(lines.length<2)throw new Error("Sin movimientos");
-   const headers=parseCsvLine(lines[0],delimiter).map(x=>x.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").trim());
+   const raw=String(reader.result||"").replace(/^\uFEFF/,"").trim();if(!raw)throw new Error("Archivo vacío");
+   const first=raw.split(/\r?\n/)[0],delimiter=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?";":",";
+   const lines=raw.split(/\r?\n/).filter(line=>line.trim());if(lines.length<2)throw new Error("Sin movimientos");
+   const headers=parseCsvLine(lines[0],delimiter).map(x=>x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").trim());
    const findHeader=patterns=>headers.findIndex(h=>patterns.some(p=>h===p||h.includes(p)));
    const dateIdx=findHeader(["fecha operacion","fecha valor","fecha","date"]);
    const descIdx=findHeader(["concepto","descripcion","description","detalle","movimiento"]);
@@ -190,7 +190,7 @@ function importBBVACsv(file){
    const debitIdx=findHeader(["cargo","debe","debit"]);
    const creditIdx=findHeader(["abono","haber","credit"]);
    if(dateIdx<0||descIdx<0||(amountIdx<0&&debitIdx<0&&creditIdx<0))throw new Error("No se reconocen las columnas de fecha, concepto e importe");
-   const parseAmount=value=>{let s=String(value||"").replace(/[€\\s]/g,"");if(s.includes(",")&&s.includes(".")){s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\\./g,"").replace(",","."):s.replace(/,/g,"");}else if(s.includes(",")){s=s.replace(",",".");}const n=Number(s);return Number.isFinite(n)?n:NaN;};
+   const parseAmount=value=>{let s=String(value||"").replace(/[€\s]/g,"");if(s.includes(",")&&s.includes(".")){s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");}else if(s.includes(",")){s=s.replace(",",".");}const n=Number(s);return Number.isFinite(n)?n:NaN;};
    const existing=new Set(data.transactions.map(t=>[String(t.transaction_date).slice(0,10),Number(t.amount).toFixed(2),String(t.description||"").trim().toLowerCase()].join("|")));
    let added=0,skipped=0;
    for(const line of lines.slice(1)){
@@ -199,7 +199,7 @@ function importBBVACsv(file){
     let amount=amountIdx>=0?parseAmount(cols[amountIdx]):NaN;
     if(!Number.isFinite(amount)&&debitIdx>=0&&creditIdx>=0){const debit=parseAmount(cols[debitIdx]),credit=parseAmount(cols[creditIdx]);amount=Number.isFinite(credit)&&credit!==0?Math.abs(credit):Number.isFinite(debit)?-Math.abs(debit):NaN;}
     if(!Number.isFinite(amount)||amount===0){skipped++;continue;}
-    let date=dateRaw.trim(),m=date.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);if(m)date=m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");else if(!/^\\d{4}-\\d{2}-\\d{2}/.test(date)){skipped++;continue;}else date=date.slice(0,10);
+    let date=dateRaw.trim(),m=date.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);if(m)date=m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");else if(!/^\d{4}-\d{2}-\d{2}/.test(date)){skipped++;continue;}else date=date.slice(0,10);
     const type=amount>0?"income":"expense",key=[date,Math.abs(amount).toFixed(2),desc.toLowerCase()].join("|");
     if(existing.has(key)){skipped++;continue;}existing.add(key);
     data.transactions.push({id:"bbva-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),type,amount:Math.abs(amount),category:type==="income"?"Otros":"Otros",description:desc,transaction_date:date,created_at:new Date().toISOString()});added++;

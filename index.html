@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg?v=zz1" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg?v=zz1">
-  <link rel="stylesheet" href="styles.css?v=saldo-inicial-1">
+  <link rel="stylesheet" href="styles.css?v=saldo-calculadora-2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -62,7 +62,7 @@
           <article class="stat-card"><div class="stat-head"><span>Gastos</span><span class="stat-icon red">－</span></div><div class="stat-value" id="expenseValue">0,00 €</div><div class="stat-foot">Total gastado este mes</div></article>
           <article class="stat-card"><div class="stat-head"><span>Capacidad de ahorro</span><span class="stat-icon purple">◎</span></div><div class="stat-value" id="savingRate">0%</div><div class="stat-foot">De tus ingresos del periodo</div></article>
         </div>
-        <article class="panel starting-money-panel"><div class="starting-money-copy"><div class="panel-heading"><div><h3>Tu dinero ahorrado</h3><p class="muted">Empieza con lo que ya tienes, sin convertirlo en un objetivo.</p></div><span class="panel-tag">PUNTO DE PARTIDA</span></div><div class="starting-money-values"><div><span>Dinero inicial</span><strong id="initialBalanceValue">0,00 €</strong></div><div><span>Dinero actual</span><strong id="currentCashValue">0,00 €</strong></div></div></div><button class="secondary-button" id="setInitialBalanceBtn" type="button">Configurar dinero inicial</button></article>
+        <article class="panel starting-money-panel"><div class="starting-money-copy"><div class="panel-heading"><div><h3>Mi dinero ahorrado</h3><p class="muted">Escribe cuánto dinero tienes ahora. Desde ese momento, SALDO sumará tus ingresos y restará tus gastos.</p></div><span class="panel-tag">CALCULADORA DE DINERO</span></div><label class="starting-balance-label" for="startingBalanceInput">Dinero que ya tengo (€)</label><div class="starting-balance-entry"><input id="startingBalanceInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ej. 10000" aria-label="Dinero que ya tienes ahorrado en euros"><button class="primary-button" id="saveStartingBalanceBtn" type="button">Guardar cantidad</button></div><div class="starting-money-values"><div><span>Dinero inicial</span><strong id="initialBalanceValue">0,00 €</strong></div><div><span>Dinero actual</span><strong id="currentCashValue">0,00 €</strong></div></div><p class="starting-balance-note">Se guarda en este dispositivo. No crea un movimiento ni un objetivo de ahorro.</p></div></article>
         <div class="content-grid">
           <article class="panel chart-panel"><div class="panel-heading"><div><h3>Ingresos vs. gastos</h3><p class="muted">Evolución de los últimos 6 meses</p></div><span class="panel-tag">6 MESES</span></div><div id="trendChart" class="trend-chart"></div><div class="chart-legend"><span><i class="legend-dot income-dot"></i>Ingresos</span><span><i class="legend-dot expense-dot"></i>Gastos</span></div></article>
           <article class="panel"><div class="panel-heading"><div><h3>Gastos por categoría</h3><p class="muted">En el periodo seleccionado</p></div></div><div id="categoryChart" class="category-chart"></div></article>
@@ -133,6 +133,6 @@
   </section>
 
   <script src="config.js"></script>
-  <script src="app.js?v=saldo-inicial-1"></script>
+  <script src="app.js?v=saldo-calculadora-2"></script>
 </body>
 </html>

@@ -87,9 +87,13 @@ function renderTransactions(){
  $("#allTransactions").innerHTML=list.length?list.map(t=>transactionRow(t)).join(""):empty("Prueba a cambiar los filtros o añade tu primer movimiento.","No encontramos movimientos");
  $("#recentTransactions").innerHTML=[...data.transactions].sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(t=>transactionRow(t,false)).join("")||empty("Añade tu primer ingreso o gasto para empezar.");
 }
+function saveStartingBalance(){
+ const input=$("#startingBalanceInput");if(!input)return;const raw=String(input.value||"").trim().replace(",",".");const amount=Number(raw);if(raw===""||!Number.isFinite(amount)||amount<0){toast("Escribe una cantidad válida, por ejemplo 10000.");input.focus();return;}
+ data.profile={...(data.profile||{}),starting_balance:amount,starting_balance_excluded_ids:data.transactions.map(t=>t.id)};saveLocal();renderAll();toast("Dinero inicial guardado. Desde ahora se sumarán tus ingresos y se restarán tus gastos.");
+}
 function renderDashboard(){
- const month=$("#dashboardMonth").value||currentMonth(),s=sums(monthTransactions(month)),all=sums(data.transactions),initial=Number(data.profile?.starting_balance)||0,bal=initial+all.income-all.expense;
- $("#balanceValue").textContent=money(bal);$("#initialBalanceValue").textContent=money(initial);$("#currentCashValue").textContent=money(bal);$("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
+ const month=$("#dashboardMonth").value||currentMonth(),s=sums(monthTransactions(month)),excluded=data.profile?.starting_balance_excluded_ids||[],all=sums(data.transactions.filter(t=>!excluded.includes(t.id))),initial=Number(data.profile?.starting_balance)||0,bal=initial+all.income-all.expense;
+ $("#balanceValue").textContent=money(bal);$("#initialBalanceValue").textContent=money(initial);$("#currentCashValue").textContent=money(bal);const startingInput=$("#startingBalanceInput");if(startingInput&&document.activeElement!==startingInput)startingInput.value=String(initial);$("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
  $("#savingRate").textContent=s.income?`${Math.round((bal/s.income)*100)}%`:"—";
  $("#balanceFoot").textContent="Acumulado de todos los movimientos registrados";
  renderTrend();renderCategories("#categoryChart",month);renderTransactions();
@@ -238,7 +242,7 @@ async function boot(){
  $("#themeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
  $("#mobileThemeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
  ["addTransactionTop","addTransactionPage"].forEach(id=>$("#"+id).addEventListener("click",()=>openModal("transaction")));
- $("#addBudgetBtn").addEventListener("click",()=>openModal("budget"));$("#addGoalBtn").addEventListener("click",()=>openModal("goal"));$("#addRecurringBtn").addEventListener("click",()=>openModal("recurring"));$("#setInitialBalanceBtn").addEventListener("click",()=>openModal("startingBalance"));
+ $("#addBudgetBtn").addEventListener("click",()=>openModal("budget"));$("#addGoalBtn").addEventListener("click",()=>openModal("goal"));$("#addRecurringBtn").addEventListener("click",()=>openModal("recurring"));$("#saveStartingBalanceBtn").addEventListener("click",saveStartingBalance);
  $("#closeModal").addEventListener("click",closeModal);$("#cancelModal").addEventListener("click",closeModal);$("#modalForm").addEventListener("submit",submitModal);
  $("#dashboardMonth").addEventListener("change",renderAll);$("#statsMonth").addEventListener("change",renderStatistics);
  ["transactionSearch","transactionTypeFilter","transactionMonthFilter"].forEach(id=>$("#"+id).addEventListener(id==="transactionSearch"?"input":"change",renderTransactions));

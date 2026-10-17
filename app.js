@@ -88,14 +88,20 @@ function renderTransactions(){
  $("#recentTransactions").innerHTML=[...data.transactions].sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(t=>transactionRow(t,false)).join("")||empty("Añade tu primer ingreso o gasto para empezar.");
 }
 function saveStartingBalance(){
- const input=$("#startingBalanceInput");if(!input)return;const raw=String(input.value||"").trim().replace(",",".");const amount=Number(raw);if(raw===""||!Number.isFinite(amount)||amount<0){toast("Escribe una cantidad válida, por ejemplo 10000.");input.focus();return;}
- data.profile={...(data.profile||{}),starting_balance:amount,starting_balance_excluded_ids:data.transactions.map(t=>t.id)};saveLocal();renderAll();toast("Dinero inicial guardado. Desde ahora se sumarán tus ingresos y se restarán tus gastos.");
+ const input=$("#startingBalanceInput"),button=$("#saveStartingBalanceBtn");if(!input)return;
+ if(Array.isArray(data.profile?.starting_balance_excluded_ids)){toast("El dinero inicial ya está fijado y no se puede cambiar.");return;}
+ const raw=String(input.value||"").trim().replace(",",".");const amount=Number(raw);if(raw===""||!Number.isFinite(amount)||amount<0){toast("Escribe una cantidad válida, por ejemplo 10000.");input.focus();return;}
+ data.profile={...(data.profile||{}),starting_balance:amount,starting_balance_excluded_ids:data.transactions.map(t=>t.id)};saveLocal();renderAll();toast("Dinero inicial fijado. Desde ahora solo cambiará con tus ingresos y gastos.");
 }
 function renderDashboard(){
  const month=$("#dashboardMonth").value||currentMonth(),s=sums(monthTransactions(month)),excluded=data.profile?.starting_balance_excluded_ids||[],all=sums(data.transactions.filter(t=>!excluded.includes(t.id))),initial=Number(data.profile?.starting_balance)||0,bal=initial+all.income-all.expense;
- $("#balanceValue").textContent=money(bal);$("#initialBalanceValue").textContent=money(initial);$("#currentCashValue").textContent=money(bal);const startingInput=$("#startingBalanceInput");if(startingInput&&document.activeElement!==startingInput)startingInput.value=String(initial);$("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
- $("#savingRate").textContent=s.income?`${Math.round((bal/s.income)*100)}%`:"—";
- $("#balanceFoot").textContent="Acumulado de todos los movimientos registrados";
+ $("#balanceValue").textContent=money(bal);$("#initialBalanceValue").textContent=money(initial);$("#currentCashValue").textContent=money(bal);
+ const startingInput=$("#startingBalanceInput"),startingButton=$("#saveStartingBalanceBtn"),startingNote=$(".starting-balance-note"),locked=Array.isArray(data.profile?.starting_balance_excluded_ids);
+ if(startingInput){if(document.activeElement!==startingInput)startingInput.value=String(initial);startingInput.disabled=locked;startingInput.setAttribute("aria-readonly",locked?"true":"false");}
+ if(startingButton){startingButton.disabled=locked;startingButton.textContent=locked?"Cantidad fijada":"Guardar cantidad";}
+ if(startingNote)startingNote.textContent=locked?"Dinero inicial fijado y bloqueado. Solo cambiará con tus nuevos ingresos y gastos.":"Se guarda en este dispositivo. Solo podrás fijarlo una vez; después no se podrá editar.";
+ $("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
+ $("#balanceFoot").textContent="Dinero inicial + ingresos posteriores − gastos posteriores";
  renderTrend();renderCategories("#categoryChart",month);renderTransactions();
 }
 function renderBudgets(){

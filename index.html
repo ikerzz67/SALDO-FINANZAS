@@ -52,7 +52,7 @@
 
       <section id="view-dashboard" class="view active">
         <div class="welcome-row">
-          <div><h2>Hola, <span id="welcomeName">¿qué tal?</span> 👋</h2><p class="muted">Aquí tienes el resumen de tus finanzas.</p></div>
+          <div><h2>Hola, <span id="welcomeName">¿qué tal?</span> 👋</h2><p class="muted">Aquí tienes el resumen de tus finanzas.</p><label class="secondary-button import-label bbva-import-quick">Importar movimientos de BBVA (CSV)<input type="file" id="bbvaCsvFile" accept=".csv,text/csv" hidden></label></div>
           <div class="month-picker"><label for="dashboardMonth">Periodo</label><input id="dashboardMonth" type="month"></div>
         </div>
         <div class="stats-grid">
@@ -124,7 +124,7 @@
     <div class="settings-card"><div class="modal-header"><div><span class="eyebrow">CONFIGURACIÓN</span><h2>Cuenta y ajustes</h2></div><button class="icon-button" id="closeSettings">×</button></div>
       <div class="settings-block"><h3>Tu perfil</h3><p id="accountEmail" class="muted">Modo local en este dispositivo</p><label>Nombre visible <input id="profileName" maxlength="40" placeholder="Tu nombre"></label><button class="secondary-button" id="saveProfile">Guardar nombre</button></div>
       <div class="settings-block"><h3>Datos y copias de seguridad</h3><p class="muted">Haz copias de seguridad periódicas. En modo local, los datos solo están en este navegador.</p><div class="settings-buttons"><button class="secondary-button" id="backupBtn">Exportar copia JSON</button><label class="secondary-button import-label">Importar copia JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>
-      <div class="settings-block"><h3>Importar movimientos de BBVA</h3><p class="muted">Selecciona un CSV de movimientos descargado desde BBVA. La importación no sustituye los movimientos que ya tienes; intenta omitir duplicados. Revisa las categorías después de importar.</p><div class="settings-buttons"><label class="secondary-button import-label">Seleccionar archivo CSV de BBVA<input type="file" id="bbvaCsvFile" accept=".csv,text/csv" hidden></label></div><p class="muted">Por seguridad, no introduzcas aquí tus claves de BBVA.</p></div>
+      <div class="settings-block"><h3>Importar movimientos de BBVA</h3><p class="muted">En el Resumen tienes el botón “Importar movimientos de BBVA (CSV)”. Selecciona un CSV descargado desde BBVA. La importación no sustituye los movimientos que ya tienes; intenta omitir duplicados. Revisa las categorías después de importar.</p><p class="muted">Por seguridad, no introduzcas aquí tus claves de BBVA.</p></div>
       <div class="settings-block"><h3>Sesión</h3><button class="danger-button" id="signOutBtn">Cerrar sesión / volver al inicio</button></div>
       <div class="settings-block"><h3>Estado de sincronización</h3><p id="syncDetails" class="muted">Los datos locales no se sincronizan entre dispositivos.</p></div>
     </div>

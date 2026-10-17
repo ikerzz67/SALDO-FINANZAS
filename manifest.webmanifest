@@ -4,11 +4,11 @@
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f5f7fb",
-  "theme_color": "#315efb",
+  "theme_color": "#0758F9",
   "description": "Control privado de tus finanzas personales.",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "icon.svg?v=zz1",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

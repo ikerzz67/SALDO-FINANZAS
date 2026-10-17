@@ -54,3 +54,17 @@
   }
   .top-actions .primary-button#addTransactionTop{position:relative;}
 }
+
+/* Panel de dinero inicial independiente de los objetivos */
+.starting-money-panel{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:0 0 19px;padding:22px}
+.starting-money-copy{flex:1;min-width:0}
+.starting-money-panel .panel-heading{margin-bottom:16px}
+.starting-money-values{display:flex;gap:34px;flex-wrap:wrap}
+.starting-money-values div{display:grid;gap:5px}
+.starting-money-values span{font-size:11px;color:var(--muted)}
+.starting-money-values strong{font-size:22px;letter-spacing:-.5px}
+.field-help{grid-column:1/-1;margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:760px){.starting-money-panel{align-items:stretch;flex-direction:column;gap:17px;padding:17px}.starting-money-panel>.secondary-button{width:100%}.starting-money-values{gap:25px}.starting-money-values strong{font-size:20px}.field-help{grid-column:auto}}
+/* Facilitar la entrada de texto en formularios móviles */
+input,select,textarea{-webkit-user-select:text;user-select:text;touch-action:manipulation}
+@media(max-width:760px){.modal input,.modal select,.settings-screen input,.auth-screen input,.filter-row input,.filter-row select{font-size:16px}}

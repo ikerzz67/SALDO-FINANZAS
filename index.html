@@ -43,6 +43,7 @@
         <div class="topbar-title"><span class="eyebrow" id="todayLabel">TU PANEL FINANCIERO</span><h1 id="pageTitle">Resumen</h1></div>
         <div class="top-actions">
           <button class="icon-button" id="mobileThemeToggle" aria-label="Cambiar tema">◐</button>
+          <button class="secondary-button quick-backup-button" id="quickBackupBtn" title="Descargar copia de seguridad">↧ Copia</button>
           <button class="primary-button" id="addTransactionTop"><span>＋</span> Añadir movimiento</button>
         </div>
       </header>
@@ -55,7 +56,7 @@
           <div class="month-picker"><label for="dashboardMonth">Periodo</label><input id="dashboardMonth" type="month"></div>
         </div>
         <div class="stats-grid">
-          <article class="stat-card balance-card"><div class="stat-head"><span>Balance del periodo</span><span class="stat-icon">↗</span></div><div class="stat-value" id="balanceValue">0,00 €</div><div class="stat-foot" id="balanceFoot">Ingresos menos gastos</div></article>
+          <article class="stat-card balance-card"><div class="stat-head"><span>Saldo disponible</span><span class="stat-icon">↗</span></div><div class="stat-value" id="balanceValue">0,00 €</div><div class="stat-foot" id="balanceFoot">Acumulado de todos los movimientos registrados</div></article>
           <article class="stat-card"><div class="stat-head"><span>Ingresos</span><span class="stat-icon green">＋</span></div><div class="stat-value" id="incomeValue">0,00 €</div><div class="stat-foot">Total recibido este mes</div></article>
           <article class="stat-card"><div class="stat-head"><span>Gastos</span><span class="stat-icon red">－</span></div><div class="stat-value" id="expenseValue">0,00 €</div><div class="stat-foot">Total gastado este mes</div></article>
           <article class="stat-card"><div class="stat-head"><span>Capacidad de ahorro</span><span class="stat-icon purple">◎</span></div><div class="stat-value" id="savingRate">0%</div><div class="stat-foot">De tus ingresos del periodo</div></article>
@@ -82,7 +83,7 @@
       <section id="view-statistics" class="view">
         <div class="section-intro"><div><h2>Estadísticas</h2><p class="muted">Entiende tus hábitos y toma mejores decisiones.</p></div><div class="month-picker"><label for="statsMonth">Periodo</label><input id="statsMonth" type="month"></div></div>
         <div class="stats-grid three"><article class="stat-card"><div class="stat-head"><span>Ingresos</span><span class="stat-icon green">＋</span></div><div class="stat-value" id="statsIncome">0 €</div></article><article class="stat-card"><div class="stat-head"><span>Gastos</span><span class="stat-icon red">－</span></div><div class="stat-value" id="statsExpense">0 €</div></article><article class="stat-card"><div class="stat-head"><span>Balance</span><span class="stat-icon purple">↗</span></div><div class="stat-value" id="statsBalance">0 €</div></article></div>
-        <div class="content-grid"><article class="panel"><div class="panel-heading"><div><h3>Desglose de gastos</h3><p class="muted">Dónde se concentra tu gasto</p></div></div><div id="statsCategories"></div></article><article class="panel"><div class="panel-heading"><div><h3>Resumen inteligente</h3><p class="muted">Datos del periodo seleccionado</p></div></div><div id="insightsList" class="insights-list"></div></article></div>
+        <div class="content-grid"><article class="panel"><div class="panel-heading"><div><h3>Desglose de gastos</h3><p class="muted">Total y porcentaje por categoría</p></div></div><div id="statsCategories"></div></article><article class="panel"><div class="panel-heading"><div><h3>Desglose de ingresos</h3><p class="muted">Total y porcentaje por categoría</p></div></div><div id="statsIncomeCategories"></div></article></div><div class="content-grid"><article class="panel"><div class="panel-heading"><div><h3>Resumen inteligente</h3><p class="muted">Datos del periodo seleccionado</p></div></div><div id="insightsList" class="insights-list"></div></article></div>
       </section>
 
       <section id="view-goals" class="view">
@@ -122,7 +123,8 @@
   <section id="settingsScreen" class="settings-screen hidden">
     <div class="settings-card"><div class="modal-header"><div><span class="eyebrow">CONFIGURACIÓN</span><h2>Cuenta y ajustes</h2></div><button class="icon-button" id="closeSettings">×</button></div>
       <div class="settings-block"><h3>Tu perfil</h3><p id="accountEmail" class="muted">Modo local en este dispositivo</p><label>Nombre visible <input id="profileName" maxlength="40" placeholder="Tu nombre"></label><button class="secondary-button" id="saveProfile">Guardar nombre</button></div>
-      <div class="settings-block"><h3>Datos</h3><p class="muted">Haz copias de seguridad periódicas. En modo local, los datos solo están en este navegador.</p><div class="settings-buttons"><button class="secondary-button" id="backupBtn">Exportar copia JSON</button><label class="secondary-button import-label">Importar copia JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>
+      <div class="settings-block"><h3>Datos y copias de seguridad</h3><p class="muted">Haz copias de seguridad periódicas. En modo local, los datos solo están en este navegador.</p><div class="settings-buttons"><button class="secondary-button" id="backupBtn">Exportar copia JSON</button><label class="secondary-button import-label">Importar copia JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>
+      <div class="settings-block"><h3>Importar movimientos de BBVA</h3><p class="muted">Selecciona un CSV de movimientos descargado desde BBVA. La importación no sustituye los movimientos que ya tienes; intenta omitir duplicados. Revisa las categorías después de importar.</p><div class="settings-buttons"><label class="secondary-button import-label">Seleccionar archivo CSV de BBVA<input type="file" id="bbvaCsvFile" accept=".csv,text/csv" hidden></label></div><p class="muted">Por seguridad, no introduzcas aquí tus claves de BBVA.</p></div>
       <div class="settings-block"><h3>Sesión</h3><button class="danger-button" id="signOutBtn">Cerrar sesión / volver al inicio</button></div>
       <div class="settings-block"><h3>Estado de sincronización</h3><p id="syncDetails" class="muted">Los datos locales no se sincronizan entre dispositivos.</p></div>
     </div>

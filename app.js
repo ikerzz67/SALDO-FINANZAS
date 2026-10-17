@@ -18,10 +18,10 @@ const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Ma
 const money = n => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(Number(n)||0);
 const dateLabel = d => d ? new Date(`${d}T12:00:00`).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"}) : "Sin fecha";
 const monthLabel = m => {const [y,mo]=m.split("-").map(Number);return `${MONTHS[mo-1]} ${y}`;};
-const emptyData = () => ({transactions:[],budgets:[],goals:[],recurring:[],profile:{display_name:"Mi espacio"}});
+const emptyData = () => ({transactions:[],budgets:[],goals:[],recurring:[],profile:{display_name:"Mi espacio",starting_balance:0}});
 let data = emptyData(), user = null, mode = "local", activeView = "dashboard", modalKind = null, editingId = null, authMode = "login", toastTimer;
 const storeKey = "saldo-local-v1";
-const getLocal = () => {try{return {...emptyData(),...JSON.parse(localStorage.getItem(storeKey)||"{}")};}catch{return emptyData();}};
+const getLocal = () => {try{const saved=JSON.parse(localStorage.getItem(storeKey)||"{}");return {...emptyData(),...saved,profile:{...emptyData().profile,...(saved.profile||{})}};}catch{return emptyData();}};
 const saveLocal = () => localStorage.setItem(storeKey,JSON.stringify(data));
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2800);}
 function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem("saldo-theme",theme);$("#themeLabel").textContent=theme==="dark"?"Modo claro":"Modo oscuro";$("#mobileThemeToggle").textContent=theme==="dark"?"☼":"◐";}
@@ -88,8 +88,8 @@ function renderTransactions(){
  $("#recentTransactions").innerHTML=[...data.transactions].sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(t=>transactionRow(t,false)).join("")||empty("Añade tu primer ingreso o gasto para empezar.");
 }
 function renderDashboard(){
- const month=$("#dashboardMonth").value||currentMonth(),s=sums(monthTransactions(month)),all=sums(data.transactions),bal=all.income-all.expense;
- $("#balanceValue").textContent=money(bal);$("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
+ const month=$("#dashboardMonth").value||currentMonth(),s=sums(monthTransactions(month)),all=sums(data.transactions),initial=Number(data.profile?.starting_balance)||0,bal=initial+all.income-all.expense;
+ $("#balanceValue").textContent=money(bal);$("#initialBalanceValue").textContent=money(initial);$("#currentCashValue").textContent=money(bal);$("#incomeValue").textContent=money(s.income);$("#expenseValue").textContent=money(s.expense);
  $("#savingRate").textContent=s.income?`${Math.round((bal/s.income)*100)}%`:"—";
  $("#balanceFoot").textContent="Acumulado de todos los movimientos registrados";
  renderTrend();renderCategories("#categoryChart",month);renderTransactions();
@@ -141,8 +141,11 @@ function openModal(kind,id=null,extra={}){
   title=isEdit?"Editar objetivo":"Nuevo objetivo de ahorro";html=field("name","Nombre del objetivo","text",old?.name||"",{placeholder:"Ej. Viaje de verano"},true)+field("target_amount","Cantidad objetivo (€)","number",old?.target_amount??"",{min:"0.01",step:"0.01"})+field("saved_amount","Ya ahorrado (€)","number",old?.saved_amount??0,{min:"0",step:"0.01"})+field("target_date","Fecha objetivo (opcional)","date",old?.target_date||"",{required:false});
  }else if(kind==="recurring"){
   title=isEdit?"Editar gasto recurrente":"Añadir gasto fijo";html=field("name","Nombre","text",old?.name||"",{placeholder:"Ej. Gimnasio"})+field("amount","Importe (€)","number",old?.amount??"",{min:"0.01",step:"0.01"})+field("category","Categoría","select",old?.category||"Suscripciones",{options:CATEGORIES.expense.map(x=>({value:x,label:x}))})+field("frequency","Frecuencia","select",old?.frequency||"monthly",{options:[{value:"weekly",label:"Semanal"},{value:"monthly",label:"Mensual"},{value:"yearly",label:"Anual"}]})+field("next_date","Próximo pago","date",old?.next_date||today());
+ }else if(kind==="startingBalance"){
+  title="Configurar dinero inicial";html=field("starting_balance","Dinero que ya tienes ahorrado (€)","number",data.profile?.starting_balance??0,{min:"0",step:"0.01"},true)+"<p class=\"field-help full\">Este importe se cuenta una sola vez y después se suman tus ingresos y se restan tus gastos. No es un objetivo de ahorro.</p>";
  }
  $("#modalTitle").textContent=title;$("#modalFields").innerHTML=html;$("#modalBackdrop").classList.remove("hidden");
+ const firstInput=$("#modalFields input");if(firstInput){try{firstInput.focus({preventScroll:true});}catch{firstInput.focus();}}
  const typeSelect=$('#modalFields [name="type"]');if(typeSelect)typeSelect.addEventListener("change",()=>{const cat=$('#modalFields [name="category"]');cat.innerHTML=CATEGORIES[typeSelect.value].map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");});
 }
 function closeModal(){$("#modalBackdrop").classList.add("hidden");$("#modalForm").reset();modalKind=null;editingId=null;}
@@ -152,6 +155,7 @@ async function submitModal(e){
   if(modalKind==="budget"){const row={category:v.category,amount:Number(v.amount)};const exists=data.budgets.find(b=>b.category===v.category&&b.id!==editingId);if(exists){toast("Ya tienes un presupuesto para esa categoría.");return;}await persist("budgets",row,editingId);}
   if(modalKind==="goal"){await persist("goals",{name:v.name.trim(),target_amount:Number(v.target_amount),saved_amount:Number(v.saved_amount||0),target_date:v.target_date||null},editingId);}
   if(modalKind==="recurring"){await persist("recurring",{name:v.name.trim(),amount:Number(v.amount),category:v.category,frequency:v.frequency,next_date:v.next_date},editingId);}
+  if(modalKind==="startingBalance"){const amount=Number(v.starting_balance);if(!Number.isFinite(amount)||amount<0){toast("Introduce una cantidad válida.");return;}data.profile={...(data.profile||{}),starting_balance:amount};saveLocal();}
   closeModal();renderAll();toast("Cambios guardados correctamente.");
  }catch(err){toast("No se pudo guardar: "+(err.message||"revisa la conexión"));}}
 async function contribute(id){
@@ -234,7 +238,7 @@ async function boot(){
  $("#themeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
  $("#mobileThemeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
  ["addTransactionTop","addTransactionPage"].forEach(id=>$("#"+id).addEventListener("click",()=>openModal("transaction")));
- $("#addBudgetBtn").addEventListener("click",()=>openModal("budget"));$("#addGoalBtn").addEventListener("click",()=>openModal("goal"));$("#addRecurringBtn").addEventListener("click",()=>openModal("recurring"));
+ $("#addBudgetBtn").addEventListener("click",()=>openModal("budget"));$("#addGoalBtn").addEventListener("click",()=>openModal("goal"));$("#addRecurringBtn").addEventListener("click",()=>openModal("recurring"));$("#setInitialBalanceBtn").addEventListener("click",()=>openModal("startingBalance"));
  $("#closeModal").addEventListener("click",closeModal);$("#cancelModal").addEventListener("click",closeModal);$("#modalForm").addEventListener("submit",submitModal);
  $("#dashboardMonth").addEventListener("change",renderAll);$("#statsMonth").addEventListener("change",renderStatistics);
  ["transactionSearch","transactionTypeFilter","transactionMonthFilter"].forEach(id=>$("#"+id).addEventListener(id==="transactionSearch"?"input":"change",renderTransactions));

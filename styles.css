@@ -57,6 +57,14 @@
 
 /* Panel de dinero inicial independiente de los objetivos */
 .starting-money-panel{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:0 0 19px;padding:22px}
+.starting-money-panel{display:block;border:1px solid color-mix(in srgb,var(--blue) 25%,var(--line));background:var(--surface)}
+.starting-money-panel .starting-money-copy{width:100%}
+.starting-balance-label{display:block;margin:0 0 7px;font-size:12px;font-weight:700;color:var(--text)}
+.starting-balance-entry{display:flex;gap:10px;align-items:stretch;max-width:560px;margin-bottom:17px}
+.starting-balance-entry input{flex:1;min-width:0;min-height:46px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);font-size:16px}
+.starting-balance-entry button{white-space:nowrap}
+.starting-balance-note{margin:12px 0 0;color:var(--muted);font-size:11px}
+@media(max-width:760px){.starting-balance-entry{flex-direction:column}.starting-balance-entry button{width:100%;min-height:44px}.starting-money-panel{padding:17px}.starting-money-values{gap:24px}.starting-money-values strong{font-size:20px}}
 .starting-money-copy{flex:1;min-width:0}
 .starting-money-panel .panel-heading{margin-bottom:16px}
 .starting-money-values{display:flex;gap:34px;flex-wrap:wrap}
